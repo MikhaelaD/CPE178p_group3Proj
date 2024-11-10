@@ -1,2 +1,5 @@
 .git
-models/resnet-ai-5_113.ckpt
+models
+dataset_train
+dataset_test
+dataset_unused
