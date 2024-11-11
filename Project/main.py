@@ -254,42 +254,75 @@ class ParasiteClassifierGUI:
         self.setup_gui()
     
     def setup_gui(self):
-        self.image_label = tk.Label(self.window, text="Select an Image", font=("Arial", 14))
+        # Create a frame for the left side (image display)
+        self.left_frame = tk.Frame(self.window)
+        self.left_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        
+        # Create a frame for the right side (question-answering chat)
+        self.right_frame = tk.Frame(self.window)
+        self.right_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        
+        # Image section in the left frame
+        self.image_label = tk.Label(self.left_frame, text="Select an Image", font=("Arial", 14))
         self.image_label.grid(row=0, column=0, padx=10, pady=10)
         
-        self.select_button = tk.Button(self.window, text="Select Image", command=self.select_image)
-        self.select_button.grid(row=0, column=1, padx=10, pady=10)
+        self.select_button = tk.Button(self.left_frame, text="Select Image", command=self.select_image)
+        self.select_button.grid(row=1, column=0, padx=10, pady=10)
         
-        self.result_label = tk.Label(self.window, text="", font=("Arial", 14))
-        self.result_label.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+        self.displayed_image = tk.Label(self.left_frame)  # Placeholder for the image
+        self.displayed_image.grid(row=2, column=0, padx=10, pady=10)
+
+        # Chat history section in the right frame
+        self.chat_history = tk.Text(self.right_frame, width=50, height=15, wrap=tk.WORD, font=("Arial", 12), state=tk.DISABLED)
+        self.chat_history.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+
+        # Question and answer section in the right frame
+        self.question_label = tk.Label(self.right_frame, text="Ask a Question about the Parasite", font=("Arial", 14))
+        self.question_label.grid(row=1, column=0, padx=10, pady=10)
         
-        self.question_label = tk.Label(self.window, text="Ask a Question about the Parasite", font=("Arial", 14))
-        self.question_label.grid(row=2, column=0, padx=10, pady=10)
+        self.question_entry = tk.Entry(self.right_frame, font=("Arial", 14), width=30)
+        self.question_entry.grid(row=1, column=1, padx=10, pady=10)
         
-        self.question_entry = tk.Entry(self.window, font=("Arial", 14), width=30)
-        self.question_entry.grid(row=2, column=1, padx=10, pady=10)
-        
-        self.ask_button = tk.Button(self.window, text="Ask Question", command=self.ask_question)
-        self.ask_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+        self.ask_button = tk.Button(self.right_frame, text="Ask Question", command=self.ask_question)
+        self.ask_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
     
     def select_image(self):
         image_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg;*.jpeg;*.png")])
         if image_path:
             result, class_name, confidence = self.classifier.classify_image(image_path)
             if result:
-                self.result_label.config(text=f"Class: {class_name}\nConfidence: {confidence:.2f}%")
                 self.image_path = image_path
+                # Display the selected image
+                img = Image.open(image_path)
+                img = img.resize((200, 200))  # Resize to fit in the window
+                img_tk = ImageTk.PhotoImage(img)
+                self.displayed_image.config(image=img_tk)
+                self.displayed_image.image = img_tk  # Keep a reference to avoid garbage collection
+                
+                # Update the chat history with the image classification result
+                self.update_chat_history(f"System: Class: {class_name}\nConfidence: {confidence:.2f}%")
     
     def ask_question(self):
         question = self.question_entry.get()
         if hasattr(self, 'image_path') and self.image_path:
+            # Update the chat history with the user's question
+            self.update_chat_history(f"You: {question}")
+            
             # Get the predicted class
             result, class_name, _ = self.classifier.classify_image(self.image_path)
             if result:
                 answer = self.qa_system.answer_question(class_name, question)
-                messagebox.showinfo("Answer", answer)
+                
+                # Update the chat history with the bot's answer
+                self.update_chat_history(f"System: {answer}")
         else:
             messagebox.showerror("Error", "Please select an image first!")
+    
+    def update_chat_history(self, message):
+        self.chat_history.config(state=tk.NORMAL)  # Enable editing to update the text
+        self.chat_history.insert(tk.END, message + "\n\n")  # Insert message
+        self.chat_history.config(state=tk.DISABLED)  # Disable editing after updating
+        self.chat_history.yview(tk.END)  # Scroll to the bottom to show the latest message
     
     def run(self):
         self.window.mainloop()
