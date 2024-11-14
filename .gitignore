@@ -3,3 +3,5 @@ models
 dataset_train
 dataset_test
 dataset_unused
+_results
+project/.mindnlp
