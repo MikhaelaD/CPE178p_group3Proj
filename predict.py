@@ -62,7 +62,7 @@ from transformers import BertTokenizerFast, BertForQuestionAnswering
 import torch
 
 class BERTAnswer:
-    def __init__(self, model_dir="D:/_results_3/checkpoint-66"):
+    def __init__(self, model_dir="D:/_results_6/checkpoint-50"):
         """
         Initialize the BERTAnswer model and tokenizer.
         """
@@ -88,6 +88,8 @@ class BERTAnswer:
         
         start_index = torch.argmax(start_scores)
         end_index = torch.argmax(end_scores)
+        print(start_index)
+        print(end_index)
 
         answer_tokens = inputs.input_ids[0][start_index:end_index + 1]
         answer = self.tokenizer.decode(answer_tokens, skip_special_tokens=True)

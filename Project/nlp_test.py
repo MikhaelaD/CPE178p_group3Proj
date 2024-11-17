@@ -6,7 +6,7 @@ import torch
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 # Load the dataset
-data = pd.read_csv("egg_dataset_qa_format_with_context.csv")
+data = pd.read_csv("parasitic_egg_contexts.csv")
 
 # Check if start_positions and end_positions are already in the CSV
 if 'start_positions' not in data.columns or 'end_positions' not in data.columns:
@@ -79,8 +79,8 @@ class QADataset(Dataset):
         }
 
 # Load pre-trained BERT model and tokenizer
-model = BertForQuestionAnswering.from_pretrained('D:\_results_2\checkpoint-66')
-tokenizer = BertTokenizerFast.from_pretrained('D:\_results_2\checkpoint-66')  # Use the Fast tokenizer
+model = BertForQuestionAnswering.from_pretrained('D:\_results_6\checkpoint-50')
+tokenizer = BertTokenizerFast.from_pretrained('D:\_results_6\checkpoint-50')  # Use the Fast tokenizer
 model.to(device)
 
 # Create train and eval datasets
@@ -89,11 +89,11 @@ eval_dataset = QADataset(eval_data, tokenizer)
 
 # Define training arguments
 training_args = TrainingArguments(
-    output_dir='D:\_results_3',          
+    output_dir='D:\_results_7',          
     evaluation_strategy="epoch",    
     per_device_train_batch_size=8, 
     per_device_eval_batch_size=8,  
-    num_train_epochs=3,                     
+    num_train_epochs=15,                     
     save_total_limit=2,
     fp16=True,
     report_to="none",                # Disable reporting to third-party platforms like WandB
